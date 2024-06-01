@@ -232,6 +232,83 @@ impl Modifier for SetPositionSphereModifier {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Reflect, Serialize, Deserialize)]
+/// A modifier to set the position of particles on a box, randomly.
+pub struct SetPositionBoxModifier {
+    /// Expression type: `Vec3`
+    pub center: ExprHandle,
+    /// Expression type: `f32`
+    pub width: ExprHandle,
+    /// Expression type: `f32`
+    pub height: ExprHandle,
+}
+
+impl SetPositionBoxModifier {
+    fn eval(
+        &self,
+        module: &mut Module,
+        context: &mut dyn EvalContext,
+    ) -> Result<String, ExprError> {
+        let func_id = calc_func_id(self);
+        let func_name = format!("set_position_box_{0:016X}", func_id);
+
+        context.make_fn(
+            &func_name,
+            "particle: ptr<function, Particle>",
+            module,
+            &mut |m: &mut Module, ctx: &mut dyn EvalContext| -> Result<String, ExprError> {
+                let center = ctx.eval(m, self.center)?;
+                let width = ctx.eval(m, self.width)?;
+                let height = ctx.eval(m, self.height)?;
+
+                Ok(format!(
+                    r##"    // Box center
+    let c = {};
+    // Box width
+    let w = {};
+    // Box height
+    let h = {};
+    // Spawn randomly inside the box
+    let x = frand() * w - w / 2.0;
+    let y = frand() * h - h / 2.0;
+    let z = frand() * w - w / 2.0;
+    (*particle).{} = c + vec3<f32>(x, y, z);
+"##,
+                    center,
+                    width,
+                    height,
+                    Attribute::POSITION.name(),
+                ))
+            },
+        )?;
+
+        let code = format!("{}(&particle);\n", func_name);
+
+        Ok(code)
+    }
+}
+
+#[typetag::serde]
+impl Modifier for SetPositionBoxModifier {
+    fn context(&self) -> ModifierContext {
+        ModifierContext::Init | ModifierContext::Update
+    }
+
+    fn attributes(&self) -> &[Attribute] {
+        &[Attribute::POSITION]
+    }
+
+    fn boxed_clone(&self) -> BoxedModifier {
+        Box::new(*self)
+    }
+
+    fn apply(&self, module: &mut Module, context: &mut ShaderWriter) -> Result<(), ExprError> {
+        let code = self.eval(module, context)?;
+        context.main_code += &code;
+        Ok(())
+    }
+}
+
 /// A modifier to set the position of particles on a truncated 3D cone.
 ///
 /// The 3D cone is oriented along the Y axis, with its origin at the center of

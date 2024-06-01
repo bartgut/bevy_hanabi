@@ -129,6 +129,10 @@ name = "instancing"
 required-features = [ "bevy/bevy_winit", "bevy/bevy_pbr", "bevy/png", "3d" ]
 
 [[example]]
+name = "box"
+required-features = [ "bevy/bevy_winit", "bevy/bevy_sprite", "2d" ]
+
+[[example]]
 name = "gradient"
 required-features = [ "bevy/bevy_winit", "bevy/bevy_pbr", "bevy/png", "3d" ]
 

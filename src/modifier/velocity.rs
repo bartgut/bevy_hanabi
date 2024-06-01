@@ -12,10 +12,7 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    calc_func_id, graph::ExprError, Attribute, BoxedModifier, EvalContext, ExprHandle, Modifier,
-    ModifierContext, Module, ShaderWriter,
-};
+use crate::{calc_func_id, graph::ExprError, Attribute, BoxedModifier, EvalContext, ExprHandle, Modifier, ModifierContext, Module, ShaderWriter};
 
 /// A modifier to set the velocity of particles radially on a circle.
 ///

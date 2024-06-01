@@ -144,16 +144,24 @@ impl Modifier for CloneModifier {
             // https://stackoverflow.com/a/31871205
             context.main_code += &format!(
                 r##"
-                let {multiple_count} = max(0, i32(floor({b} / {m})) - i32(ceil(({b} - {delta}) / {m})) + 1);
-                for (var i = 0; i < {multiple_count}; i += 1) {{
+                let age = particle.{age};
+                let life = particle.{lifetime};
+                let res = age / life;
+                if (res >= 1.0) {{
                     {func}(&particle, index);
                 }}
+                /*let {multiple_count} = max(0, i32(floor({b} / {m})) - i32(ceil(({b} - {delta}) / {m})) + 1);
+                for (var i = 0; i < {multiple_count}; i += 1) {{
+                    {func}(&particle, index);
+                }}*/
             "##,
                 func = func_name,
                 multiple_count = multiple_count_name,
                 b = "sim_params.time",
                 delta = "sim_params.delta_time",
-                m = self.spawn_period
+                m = self.spawn_period,
+                age = Attribute::AGE.name(),
+                lifetime = Attribute::LIFETIME.name()
             );
         }
 
